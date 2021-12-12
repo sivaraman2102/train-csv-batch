@@ -45,7 +45,7 @@ public class DataController {
 		
         JobExecution jobExecution = jobLauncher.run(trainCsvBatchJob,new JobParameters(maps));
         
-        log.info("BATCH JOB STARTED WITH {} ID AND STARTED AT {}",jobExecution.getJobId(),jobExecution.getStartTime());
+        
         
         return new ResponseEntity<>(jobExecution.getStatus(),HttpStatus.OK);
     }
