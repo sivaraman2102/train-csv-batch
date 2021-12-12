@@ -22,7 +22,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import com.siva.traincsvbatch.listener.ChunkCountListener;
 import com.siva.traincsvbatch.listener.JobCompletionListener;
 import com.siva.traincsvbatch.models.TrainInfo;
 
@@ -37,15 +36,12 @@ public class BatchConfig {
 	@Autowired
 	StepBuilderFactory stepBuilderFactory;
 	
-	@Autowired
-	ChunkCountListener chunkCountListener;
-	
 	private static final Logger log =
             LoggerFactory.getLogger(BatchConfig.class);
 
 	@Bean
     public FlatFileItemReader<TrainInfo> reader() {
-		log.info("Inside Item Reader");
+		System.out.println("Inside Item Reader");
         return new FlatFileItemReaderBuilder<TrainInfo>().name("userItemReader")
                 .resource(new ClassPathResource("train_info.csv")).delimited()
                 .names(new String[] {"train_No","train_Name","source_Station_Name","destination_Station_Name","days"})
@@ -79,7 +75,6 @@ public class BatchConfig {
 	                .<TrainInfo, TrainInfo> chunk(10)
 	                .reader(itemReader)
 	                .writer(itemWriter)
-	                .listener(chunkCountListener)
 	                .build();
 	    }
 }
