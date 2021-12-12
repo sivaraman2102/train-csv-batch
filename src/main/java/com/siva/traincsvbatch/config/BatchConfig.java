@@ -37,8 +37,6 @@ public class BatchConfig {
 	@Autowired
 	StepBuilderFactory stepBuilderFactory;
 	
-	@Autowired
-	ChunkCountListener chunkCountListener;
 	
 	private static final Logger log =
             LoggerFactory.getLogger(BatchConfig.class);
@@ -73,13 +71,18 @@ public class BatchConfig {
 	                .build();
 	  }
 
-	    @Bean
-	    public Step step1(FlatFileItemReader<TrainInfo> itemReader, MongoItemWriter<TrainInfo> itemWriter) throws Exception {
-	        return stepBuilderFactory.get("step1")
-	                .<TrainInfo, TrainInfo> chunk(10)
-	                .reader(itemReader)
-	                .writer(itemWriter)
-	                .listener(chunkCountListener)
-	                .build();
-	    }
+    @Bean
+    public Step step1(FlatFileItemReader<TrainInfo> itemReader, MongoItemWriter<TrainInfo> itemWriter) throws Exception {
+        return stepBuilderFactory.get("step1")
+                .<TrainInfo, TrainInfo> chunk(10)
+                .reader(itemReader)
+                .writer(itemWriter)
+                .listener(chunkCountListener())
+                .build();
+    }
+    
+    @Bean
+    public ChunkCountListener chunkCountListener() {
+    	return new ChunkCountListener();
+    }
 }
