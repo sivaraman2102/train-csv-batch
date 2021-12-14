@@ -3,6 +3,8 @@ package com.siva.traincsvbatch.config;
 
 
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -11,8 +13,9 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.data.MongoItemWriter;
-import org.springframework.batch.item.data.builder.MongoItemWriterBuilder;
+import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
@@ -20,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.mongodb.core.MongoTemplate;
 
 import com.siva.traincsvbatch.listener.ChunkCountListener;
 import com.siva.traincsvbatch.listener.JobCompletionListener;
@@ -37,9 +39,13 @@ public class BatchConfig {
 	@Autowired
 	StepBuilderFactory stepBuilderFactory;
 	
+		
 	
 	private static final Logger log =
             LoggerFactory.getLogger(BatchConfig.class);
+	
+	final String insertData = "INSERT INTO traindata (train_No,train_Name,source_Station_Name,destination_Station_Name,days) VALUES (:train_No,:train_Name,:source_Station_Name,:destination_Station_Name,:days);";
+
 
 	@Bean
     public FlatFileItemReader<TrainInfo> reader() {
@@ -54,13 +60,16 @@ public class BatchConfig {
                 }).build();
     }
 	
+
 	
-	 @Bean
-	 public MongoItemWriter<TrainInfo> writer(MongoTemplate mongoTemplate) {
-		 log.info("Inside Item Writer");
-	       return new MongoItemWriterBuilder<TrainInfo>().template(mongoTemplate)
-	       .build();
-	 }
+	@Bean
+	public JdbcBatchItemWriter<TrainInfo> writer (@Autowired DataSource dataSource){
+		return new JdbcBatchItemWriterBuilder<TrainInfo>()
+				.itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
+				.sql(insertData)
+				.dataSource(dataSource)
+				.build();
+	}
 	 
 	 @Bean
 	 public Job trainCsvBatchJob(JobCompletionListener listener, Step step1) {
@@ -72,7 +81,7 @@ public class BatchConfig {
 	  }
 
     @Bean
-    public Step step1(FlatFileItemReader<TrainInfo> itemReader, MongoItemWriter<TrainInfo> itemWriter) throws Exception {
+    public Step step1(FlatFileItemReader<TrainInfo> itemReader, JdbcBatchItemWriter<TrainInfo> itemWriter) throws Exception {
         return stepBuilderFactory.get("step1")
                 .<TrainInfo, TrainInfo> chunk(10)
                 .reader(itemReader)
@@ -85,4 +94,27 @@ public class BatchConfig {
     public ChunkCountListener chunkCountListener() {
     	return new ChunkCountListener();
     }
+    
+//    @Bean
+//    @Primary
+//    public DataSource dataSource() {
+//        HikariDataSource dataSourceBuilder = new HikariDataSource();
+//        dataSourceBuilder.setJdbcUrl(url);
+//        dataSourceBuilder.setDriverClassName(driver);
+//        dataSourceBuilder.setUsername(username);
+//        dataSourceBuilder.setPassword(password);
+//        
+//        return dataSourceBuilder;
+//        
+//    }
+//    @Bean
+//    @ConfigurationProperties(prefix="spring.postgres.datasource")
+//    public DataSource mydataSource() {
+//        return DataSourceBuilder.create().build();
+//    }
+//    @Bean
+//    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(){
+//        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(this.dataSource());
+//        return namedParameterJdbcTemplate;
+//    }
 }

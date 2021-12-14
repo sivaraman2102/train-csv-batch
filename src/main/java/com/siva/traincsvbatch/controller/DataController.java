@@ -3,8 +3,6 @@ package com.siva.traincsvbatch.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
@@ -18,7 +16,7 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,10 +32,8 @@ public class DataController {
 	@Autowired
 	Job trainCsvBatchJob;
 	
-	private static final Logger log =
-            LoggerFactory.getLogger(DataController.class);
 	
-	@RequestMapping("/start")	
+	@GetMapping("/start")	
 	public ResponseEntity<Object> trainCsvBatchJob(@RequestParam String useridString) throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException  {
 		
 		Map<String, JobParameter> maps = new HashMap<>();
