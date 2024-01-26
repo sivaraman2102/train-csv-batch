@@ -12,4 +12,4 @@ jobs:
         API_TOKEN=$YOUR_SECRET_API_TOKEN  # Replace with the secret name
 
         # Make the API call using curl
-        curl -X POST $API_URL
+        curl -X GET $API_URL
